@@ -17,7 +17,9 @@ private:
     Node* head;
 
 public:
-    LinkedList() : head(nullptr) {}
+    LinkedList() {
+        head = nullptr;
+    }
     
     // a) insertion of data at end
     void insertAtEnd(int data) {
@@ -357,16 +359,14 @@ int main() {
                 break;
                 
             case 0:
-                cout << "exiting... grass touching time" << endl;
+                cout << "exiting.." << endl;
                 break;
                 
             default:
-                cout << "invalid choice bestie, try again" << endl;
+                cout << "invalid choice, try again" << endl;
         }
     } while (choice != 0);
     
     return 0;
 }
-
-
 ```
