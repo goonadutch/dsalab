@@ -1,16 +1,7 @@
 # CODE
 
 ```
-// get total number of levels in BST
-    void getTotalLevels() {
-        if (root == nullptr) {
-            cout << "tree empty, 0 levels bestie" << endl;
-            return;
-        }
-        
-        int levels = getTreeHeight(root) + 1; // height + 1 = levels
-        cout << "total levels in BST: " << levels << endl;
-    }#include <iostream>
+#include <iostream>
 #include <cmath>
 #include <vector>
 #include <set>
@@ -166,45 +157,32 @@ private:
         return findDepthHelper(node->right, value, depth + 1);
     }
     
-    // find height of a specific node (corrected)
-    int getNodeHeight(Node* node) {
+    // calculate height from specific node (CORRECTED)
+    int calculateNodeHeight(Node* node) {
         if (node == nullptr) {
             return -1;
         }
         
-        int leftHeight = getNodeHeight(node->left);
-        int rightHeight = getNodeHeight(node->right);
+        int leftHeight = calculateNodeHeight(node->left);
+        int rightHeight = calculateNodeHeight(node->right);
         
         return max(leftHeight, rightHeight) + 1;
     }
     
-    // find height of a node helper (corrected)
-    int findHeightHelper(Node* node, int value, int& height) {
+    // find node and return its height (CORRECTED)
+    int findNodeHeight(Node* node, int value) {
         if (node == nullptr) {
-            return -1;
+            return -2; // not found indicator
         }
         
         if (node->data == value) {
-            height = getNodeHeight(node); // calculate height from this specific node
-            return 1; // found
+            return calculateNodeHeight(node);
         }
         
-        int left = findHeightHelper(node->left, value, height);
-        if (left != -1) return left;
+        int leftResult = findNodeHeight(node->left, value);
+        if (leftResult != -2) return leftResult;
         
-        return findHeightHelper(node->right, value, height);
-    }
-    
-    // get height from specific node
-    int getHeightFromNode(Node* node) {
-        if (node == nullptr) {
-            return -1;
-        }
-        
-        int leftHeight = getHeightFromNode(node->left);
-        int rightHeight = getHeightFromNode(node->right);
-        
-        return max(leftHeight, rightHeight) + 1;
+        return findNodeHeight(node->right, value);
     }
     
     // get tree height
@@ -462,7 +440,7 @@ public:
         return similarStructureHelper(root, otherTree.root);
     }
     
-    // 9) find depth and height of node
+    // 9) find depth and height of node (CORRECTED)
     void findDepthAndHeight(int value) {
         int depth = findDepthHelper(root, value, 0);
         if (depth == -1) {
@@ -470,8 +448,7 @@ public:
             return;
         }
         
-        int height = -1;
-        findHeightHelper(root, value, height);
+        int height = findNodeHeight(root, value);
         
         cout << "node " << value << ":" << endl;
         cout << "depth: " << depth << " (distance from root)" << endl;
@@ -595,7 +572,10 @@ public:
         cout << "right subtree's rightmost node of " << value << ": " << current->data << endl;
     }
     
-    // 18) already covered in function 9
+    // 18) find height and depth when node value is given (same as 9)
+    void findNodeHeightDepth(int value) {
+        findDepthAndHeight(value);
+    }
     
     // 19) check if tree is BST
     void checkIfBST() {
@@ -728,6 +708,17 @@ public:
         }
     }
     
+    // 28) find total number of levels in BST
+    void getTotalLevels() {
+        if (root == nullptr) {
+            cout << "tree empty, 0 levels bestie" << endl;
+            return;
+        }
+        
+        int levels = getTreeHeight(root) + 1; // height + 1 = levels
+        cout << "total levels in BST: " << levels << endl;
+    }
+    
     bool isEmpty() {
         return root == nullptr;
     }
@@ -773,17 +764,18 @@ int main() {
         cout << "15. Right's leftmost node" << endl;
         cout << "16. Left's leftmost node" << endl;
         cout << "17. Right's rightmost node" << endl;
-        cout << "18. Check if tree is BST" << endl;
-        cout << "19. Count nodes in range" << endl;
-        cout << "20. Search node with info" << endl;
-        cout << "21. Find LCA of two nodes" << endl;
-        cout << "22. Find median of BST" << endl;
-        cout << "23. Find unique values" << endl;
-        cout << "24. Find pair with sum" << endl;
-        cout << "25. Find common nodes with tree2" << endl;
-        cout << "26. Find predecessor and successor" << endl;
-        cout << "27. Get total levels in BST" << endl;
-        cout << "28. Operations on tree2" << endl;
+        cout << "18. Find height/depth of node (alt)" << endl;
+        cout << "19. Check if tree is BST" << endl;
+        cout << "20. Count nodes in range" << endl;
+        cout << "21. Search node with info" << endl;
+        cout << "22. Find LCA of two nodes" << endl;
+        cout << "23. Find median of BST" << endl;
+        cout << "24. Find unique values" << endl;
+        cout << "25. Find pair with sum" << endl;
+        cout << "26. Find common nodes with tree2" << endl;
+        cout << "27. Find predecessor and successor" << endl;
+        cout << "28. Find total levels in BST" << endl;
+        cout << "29. Operations on tree2" << endl;
         cout << "0. Exit (touch grass)" << endl;
         cout << "Enter your choice sigma: ";
         cin >> choice;
@@ -882,56 +874,62 @@ int main() {
                 break;
                 
             case 18:
-                tree1.checkIfBST();
+                cout << "Enter node value: ";
+                cin >> value;
+                tree1.findNodeHeightDepth(value);
                 break;
                 
             case 19:
+                tree1.checkIfBST();
+                break;
+                
+            case 20:
                 cout << "Enter range [low high]: ";
                 cin >> low >> high;
                 tree1.countNodesInRange(low, high);
                 break;
                 
-            case 20:
+            case 21:
                 cout << "Enter value to search: ";
                 cin >> value;
                 tree1.searchNode(value);
                 break;
                 
-            case 21:
+            case 22:
                 cout << "Enter two node values: ";
                 cin >> n1 >> n2;
                 tree1.findLCA(n1, n2);
                 break;
                 
-            case 22:
+            case 23:
                 tree1.findMedian();
                 break;
                 
-            case 23:
+            case 24:
                 tree1.findUniqueValues();
                 break;
                 
-            case 24:
+            case 25:
                 cout << "Enter target sum: ";
                 cin >> target;
                 tree1.findPairWithSum(target);
                 break;
                 
-            case 25:
+            case 26:
                 tree1.findCommonNodes(tree2);
                 break;
                 
-            case 26:
+            case 27:
                 cout << "Enter node value: ";
                 cin >> value;
                 tree1.findPredecessorAndSuccessor(value);
                 break;
                 
-            case 27:
+            case 28:
                 tree1.getTotalLevels();
                 break;
                 
-            case 28:
+            case 29:
                 cout << "\n=== TREE2 OPERATIONS ===" << endl;
                 cout << "1. Insert to tree2" << endl;
                 cout << "2. Display tree2 inorder" << endl;
