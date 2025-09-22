@@ -1,69 +1,47 @@
-# CODE
+// CODE
 
-```
 #include <iostream>
-#include <cmath>
 #include <vector>
 #include <set>
-#include <algorithm>
 #include <climits>
+#include <cmath>
+#include <algorithm>
 using namespace std;
 
 struct Node {
     int data;
     Node* left;
     Node* right;
+    
+    Node(int value) : data(value), left(nullptr), right(nullptr) {}
 };
 
 class BST {
 private:
     Node* root;
     
-    // helper function to create new node
-    Node* createNode(int data) {
-        Node* newNode = new Node;
-        newNode->data = data;
-        newNode->left = nullptr;
-        newNode->right = nullptr;
-        return newNode;
-    }
-    
-    // helper for insertion
-    Node* insertHelper(Node* node, int data) {
+    Node* insertRec(Node* node, int data) {
         if (node == nullptr) {
-            return createNode(data);
+            return new Node(data);
         }
         
         if (data < node->data) {
-            node->left = insertHelper(node->left, data);
+            node->left = insertRec(node->left, data);
         } else if (data > node->data) {
-            node->right = insertHelper(node->right, data);
+            node->right = insertRec(node->right, data);
         }
         
         return node;
     }
     
-    // helper for finding minimum value node
-    Node* findMin(Node* node) {
-        if (node == nullptr) return nullptr;
-        while (node->left != nullptr) {
-            node = node->left;
-        }
-        return node;
-    }
-    
-    // helper for deletion
-    Node* deleteHelper(Node* node, int data) {
-        if (node == nullptr) {
-            return node;
-        }
+    Node* deleteRec(Node* node, int data) {
+        if (node == nullptr) return node;
         
         if (data < node->data) {
-            node->left = deleteHelper(node->left, data);
+            node->left = deleteRec(node->left, data);
         } else if (data > node->data) {
-            node->right = deleteHelper(node->right, data);
+            node->right = deleteRec(node->right, data);
         } else {
-            // node to delete found
             if (node->left == nullptr) {
                 Node* temp = node->right;
                 delete node;
@@ -74,891 +52,939 @@ private:
                 return temp;
             }
             
-            // node with two children
             Node* temp = findMin(node->right);
             node->data = temp->data;
-            node->right = deleteHelper(node->right, temp->data);
+            node->right = deleteRec(node->right, temp->data);
         }
         return node;
     }
     
-    // preorder traversal helper
-    void preorderHelper(Node* node) {
+    void preorderRec(Node* node) {
         if (node != nullptr) {
             cout << node->data << " ";
-            preorderHelper(node->left);
-            preorderHelper(node->right);
+            preorderRec(node->left);
+            preorderRec(node->right);
         }
     }
     
-    // inorder traversal helper
-    void inorderHelper(Node* node) {
+    void postorderRec(Node* node) {
         if (node != nullptr) {
-            inorderHelper(node->left);
-            cout << node->data << " ";
-            inorderHelper(node->right);
-        }
-    }
-    
-    // postorder traversal helper
-    void postorderHelper(Node* node) {
-        if (node != nullptr) {
-            postorderHelper(node->left);
-            postorderHelper(node->right);
+            postorderRec(node->left);
+            postorderRec(node->right);
             cout << node->data << " ";
         }
     }
     
-    // find max helper (rightmost)
-    Node* findMaxHelper(Node* node) {
-        if (node == nullptr) return nullptr;
-        while (node->right != nullptr) {
-            node = node->right;
+    void inorderRec(Node* node) {
+        if (node != nullptr) {
+            inorderRec(node->left);
+            cout << node->data << " ";
+            inorderRec(node->right);
         }
-        return node;
     }
     
-    // find min helper (leftmost)
-    Node* findMinHelper(Node* node) {
-        if (node == nullptr) return nullptr;
-        while (node->left != nullptr) {
+    Node* findMin(Node* node) {
+        while (node && node->left != nullptr) {
             node = node->left;
         }
         return node;
     }
     
-    // check similar structure helper
-    bool similarStructureHelper(Node* tree1, Node* tree2) {
-        if (tree1 == nullptr && tree2 == nullptr) {
-            return true;
+    Node* findMax(Node* node) {
+        while (node && node->right != nullptr) {
+            node = node->right;
         }
-        
-        if (tree1 == nullptr || tree2 == nullptr) {
-            return false;
-        }
-        
-        return similarStructureHelper(tree1->left, tree2->left) && 
-               similarStructureHelper(tree1->right, tree2->right);
+        return node;
     }
     
-    // find depth of a node helper
-    int findDepthHelper(Node* node, int value, int depth) {
-        if (node == nullptr) {
-            return -1; // not found
-        }
+    int getHeight(Node* node) {
+        if (node == nullptr) return -1;
+        return 1 + max(getHeight(node->left), getHeight(node->right));
+    }
+    
+    int getDepth(Node* node, int value, int depth) {
+        if (node == nullptr) return -1;
+        if (node->data == value) return depth;
         
-        if (node->data == value) {
-            return depth;
-        }
-        
-        int leftDepth = findDepthHelper(node->left, value, depth + 1);
+        int leftDepth = getDepth(node->left, value, depth + 1);
         if (leftDepth != -1) return leftDepth;
         
-        return findDepthHelper(node->right, value, depth + 1);
+        return getDepth(node->right, value, depth + 1);
     }
     
-    // calculate height from specific node (CORRECTED)
-    int calculateNodeHeight(Node* node) {
-        if (node == nullptr) {
-            return -1;
-        }
-        
-        int leftHeight = calculateNodeHeight(node->left);
-        int rightHeight = calculateNodeHeight(node->right);
-        
-        return max(leftHeight, rightHeight) + 1;
-    }
-    
-    // find node and return its height (CORRECTED)
-    int findNodeHeight(Node* node, int value) {
-        if (node == nullptr) {
-            return -2; // not found indicator
-        }
-        
-        if (node->data == value) {
-            return calculateNodeHeight(node);
-        }
-        
-        int leftResult = findNodeHeight(node->left, value);
-        if (leftResult != -2) return leftResult;
-        
-        return findNodeHeight(node->right, value);
-    }
-    
-    // get tree height
-    int getTreeHeight(Node* node) {
-        if (node == nullptr) {
-            return -1;
-        }
-        
-        int leftHeight = getTreeHeight(node->left);
-        int rightHeight = getTreeHeight(node->right);
-        
-        return max(leftHeight, rightHeight) + 1;
-    }
-    
-    // find node helper
-    Node* findNodeHelper(Node* node, int value) {
+    Node* findNode(Node* node, int value) {
         if (node == nullptr || node->data == value) {
             return node;
         }
         
         if (value < node->data) {
-            return findNodeHelper(node->left, value);
+            return findNode(node->left, value);
         }
-        
-        return findNodeHelper(node->right, value);
+        return findNode(node->right, value);
     }
     
-    // find parent helper
-    Node* findParentHelper(Node* node, int value) {
-        if (node == nullptr || (node->left == nullptr && node->right == nullptr)) {
+    Node* findParent(Node* node, int value) {
+        if (node == nullptr || node->data == value) {
             return nullptr;
         }
         
-        if ((node->left != nullptr && node->left->data == value) ||
-            (node->right != nullptr && node->right->data == value)) {
+        if ((node->left && node->left->data == value) || 
+            (node->right && node->right->data == value)) {
             return node;
         }
         
         if (value < node->data) {
-            return findParentHelper(node->left, value);
-        } else {
-            return findParentHelper(node->right, value);
+            return findParent(node->left, value);
         }
+        return findParent(node->right, value);
     }
     
-    // check if BST helper
-    bool isBSTHelper(Node* node, int minVal, int maxVal) {
+    bool isBSTRec(Node* node, int minVal, int maxVal) {
         if (node == nullptr) return true;
         
         if (node->data <= minVal || node->data >= maxVal) {
             return false;
         }
         
-        return isBSTHelper(node->left, minVal, node->data) &&
-               isBSTHelper(node->right, node->data, maxVal);
+        return isBSTRec(node->left, minVal, node->data) && 
+               isBSTRec(node->right, node->data, maxVal);
     }
     
-    // count nodes in range helper
-    int countInRangeHelper(Node* node, int low, int high) {
-        if (node == nullptr) return 0;
+    void countInRange(Node* node, int low, int high, int& count) {
+        if (node == nullptr) return;
         
-        int count = 0;
         if (node->data >= low && node->data <= high) {
-            count = 1;
+            count++;
         }
         
-        count += countInRangeHelper(node->left, low, high);
-        count += countInRangeHelper(node->right, low, high);
+        if (node->data > low) {
+            countInRange(node->left, low, high, count);
+        }
         
-        return count;
+        if (node->data < high) {
+            countInRange(node->right, low, high, count);
+        }
     }
     
-    // LCA helper
-    Node* lcaHelper(Node* node, int n1, int n2) {
+    void inorderVector(Node* node, vector<int>& result) {
+        if (node != nullptr) {
+            inorderVector(node->left, result);
+            result.push_back(node->data);
+            inorderVector(node->right, result);
+        }
+    }
+    
+    Node* findLCA(Node* node, int n1, int n2) {
         if (node == nullptr) return nullptr;
         
         if (node->data > n1 && node->data > n2) {
-            return lcaHelper(node->left, n1, n2);
+            return findLCA(node->left, n1, n2);
         }
         
         if (node->data < n1 && node->data < n2) {
-            return lcaHelper(node->right, n1, n2);
+            return findLCA(node->right, n1, n2);
         }
         
         return node;
     }
     
-    // inorder for median
-    void inorderForMedian(Node* node, vector<int>& arr) {
-        if (node != nullptr) {
-            inorderForMedian(node->left, arr);
-            arr.push_back(node->data);
-            inorderForMedian(node->right, arr);
-        }
-    }
-    
-    // collect unique values
-    void collectUniqueValues(Node* node, set<int>& uniqueSet) {
-        if (node != nullptr) {
-            uniqueSet.insert(node->data);
-            collectUniqueValues(node->left, uniqueSet);
-            collectUniqueValues(node->right, uniqueSet);
-        }
-    }
-    
-    // find pair with sum helper
-    bool findPairHelper(Node* node, int target, set<int>& visited) {
-        if (node == nullptr) return false;
-        
-        int complement = target - node->data;
-        if (visited.find(complement) != visited.end()) {
-            cout << "pair found: " << node->data << " + " << complement << " = " << target << endl;
-            return true;
-        }
-        
-        visited.insert(node->data);
-        
-        return findPairHelper(node->left, target, visited) ||
-               findPairHelper(node->right, target, visited);
-    }
-    
-    // collect nodes for common elements
-    void collectNodes(Node* node, set<int>& nodeSet) {
-        if (node != nullptr) {
-            nodeSet.insert(node->data);
-            collectNodes(node->left, nodeSet);
-            collectNodes(node->right, nodeSet);
-        }
-    }
-    
-    // find predecessor
     Node* findPredecessor(Node* node, int value) {
-        Node* target = findNodeHelper(node, value);
+        Node* target = findNode(node, value);
         if (target == nullptr) return nullptr;
         
-        // if left subtree exists, predecessor is rightmost in left subtree
         if (target->left != nullptr) {
-            return findMaxHelper(target->left);
+            return findMax(target->left);
         }
         
-        // otherwise find ancestor where target is in right subtree
         Node* predecessor = nullptr;
-        Node* current = root;
-        
-        while (current != target) {
-            if (target->data > current->data) {
-                predecessor = current;
-                current = current->right;
+        while (node != nullptr) {
+            if (value > node->data) {
+                predecessor = node;
+                node = node->right;
+            } else if (value < node->data) {
+                node = node->left;
             } else {
-                current = current->left;
+                break;
             }
         }
-        
         return predecessor;
     }
     
-    // find successor
     Node* findSuccessor(Node* node, int value) {
-        Node* target = findNodeHelper(node, value);
+        Node* target = findNode(node, value);
         if (target == nullptr) return nullptr;
         
-        // if right subtree exists, successor is leftmost in right subtree
         if (target->right != nullptr) {
-            return findMinHelper(target->right);
+            return findMin(target->right);
         }
         
-        // otherwise find ancestor where target is in left subtree
         Node* successor = nullptr;
-        Node* current = root;
-        
-        while (current != target) {
-            if (target->data < current->data) {
-                successor = current;
-                current = current->left;
+        while (node != nullptr) {
+            if (value < node->data) {
+                successor = node;
+                node = node->left;
+            } else if (value > node->data) {
+                node = node->right;
             } else {
-                current = current->right;
+                break;
             }
         }
-        
         return successor;
+    }
+    
+    int countNodes(Node* node) {
+        if (node == nullptr) return 0;
+        return 1 + countNodes(node->left) + countNodes(node->right);
     }
 
 public:
-    BST() {
-        root = nullptr;
-    }
+    BST() : root(nullptr) {}
     
-    // 1) insertion
     void insert(int data) {
-        root = insertHelper(root, data);
-        cout << "inserted " << data << " successfully bestie" << endl;
+        root = insertRec(root, data);
     }
     
-    // 2) deletion
-    void deleteValue(int data) {
-        root = deleteHelper(root, data);
-        cout << "deleted " << data << " from tree fr" << endl;
+    void deleteNode(int data) {
+        root = deleteRec(root, data);
     }
     
-    // 3) preorder traversal
-    void preorderTraversal() {
-        if (root == nullptr) {
-            cout << "tree empty as my brain during exams" << endl;
-            return;
-        }
-        cout << "preorder traversal: ";
-        preorderHelper(root);
+    void preorder() {
+        cout << "Preorder: ";
+        preorderRec(root);
         cout << endl;
     }
     
-    // 4) inorder traversal
-    void inorderTraversal() {
-        if (root == nullptr) {
-            cout << "tree empty bestie" << endl;
-            return;
-        }
-        cout << "inorder traversal (sorted): ";
-        inorderHelper(root);
+    void postorder() {
+        cout << "Postorder: ";
+        postorderRec(root);
         cout << endl;
     }
     
-    // 5) postorder traversal
-    void postorderTraversal() {
-        if (root == nullptr) {
-            cout << "tree empty fr fr" << endl;
-            return;
-        }
-        cout << "postorder traversal: ";
-        postorderHelper(root);
+    void inorder() {
+        cout << "Inorder: ";
+        inorderRec(root);
         cout << endl;
     }
     
-    // 6) find max (rightmost)
-    void findMax() {
-        Node* maxNode = findMaxHelper(root);
-        if (maxNode == nullptr) {
-            cout << "tree empty, no max value sigma" << endl;
-        } else {
-            cout << "maximum value (rightmost): " << maxNode->data << endl;
-        }
-    }
-    
-    // 7) find min (leftmost)
-    void findMin() {
-        Node* minNode = findMinHelper(root);
-        if (minNode == nullptr) {
-            cout << "tree empty, no min value bestie" << endl;
-        } else {
-            cout << "minimum value (leftmost): " << minNode->data << endl;
-        }
-    }
-    
-    // 8) check similar structure with another tree
-    bool checkSimilarStructure(BST& otherTree) {
-        return similarStructureHelper(root, otherTree.root);
-    }
-    
-    // 9) find depth and height of node (CORRECTED)
-    void findDepthAndHeight(int value) {
-        int depth = findDepthHelper(root, value, 0);
-        if (depth == -1) {
-            cout << "value " << value << " not found in tree bestie" << endl;
-            return;
-        }
-        
-        int height = findNodeHeight(root, value);
-        
-        cout << "node " << value << ":" << endl;
-        cout << "depth: " << depth << " (distance from root)" << endl;
-        cout << "height: " << height << " (distance to deepest leaf)" << endl;
-    }
-    
-    // 10) get tree depth and height
-    void getTreeInfo() {
-        int height = getTreeHeight(root);
-        cout << "tree height: " << height << endl;
-        cout << "tree depth: " << height << " (same as height for whole tree)" << endl;
-    }
-    
-    // 11) calculate levels from number of nodes
-    void calculateLevels(int numNodes) {
-        if (numNodes <= 0) {
-            cout << "invalid number of nodes bestie" << endl;
-            return;
-        }
-        
-        // minimum levels (balanced tree)
-        int minLevels = ceil(log2(numNodes + 1));
-        // maximum levels (skewed tree)
-        int maxLevels = numNodes;
-        
-        cout << "with " << numNodes << " nodes:" << endl;
-        cout << "minimum levels (balanced): " << minLevels << endl;
-        cout << "maximum levels (skewed): " << maxLevels << endl;
-    }
-    
-    // 12) find parent node
-    void findParent(int value) {
+    void findMaxValue() {
         if (root == nullptr) {
-            cout << "tree empty bestie" << endl;
+            cout << "Tree is empty" << endl;
             return;
         }
-        
-        if (root->data == value) {
-            cout << "node " << value << " is root, no parent fr" << endl;
-            return;
-        }
-        
-        Node* parent = findParentHelper(root, value);
-        if (parent == nullptr) {
-            cout << "node " << value << " not found in tree" << endl;
-        } else {
-            cout << "parent of " << value << " is: " << parent->data << endl;
-        }
+        Node* maxNode = findMax(root);
+        cout << "Maximum value: " << maxNode->data << endl;
     }
     
-    // 13) find child nodes
-    void findChildren(int value) {
-        Node* node = findNodeHelper(root, value);
+    void findMinValue() {
+        if (root == nullptr) {
+            cout << "Tree is empty" << endl;
+            return;
+        }
+        Node* minNode = findMin(root);
+        cout << "Minimum value: " << minNode->data << endl;
+    }
+    
+    void getNodeDepthHeight() {
+        int value;
+        cout << "Enter node value: ";
+        cin >> value;
+        
+        Node* node = findNode(root, value);
         if (node == nullptr) {
-            cout << "node " << value << " not found bestie" << endl;
+            cout << "Node not found" << endl;
             return;
         }
         
-        cout << "children of " << value << ": ";
-        if (node->left == nullptr && node->right == nullptr) {
-            cout << "no children (leaf node)" << endl;
-        } else {
-            if (node->left != nullptr) {
-                cout << "left: " << node->left->data << " ";
+        int depth = getDepth(root, value, 0);
+        int height = getHeight(node);
+        
+        cout << "Node " << value << " - Depth: " << depth << ", Height: " << height << endl;
+    }
+    
+    void calculateLevels() {
+        int levels = getHeight(root) + 1;
+        cout << "Number of levels in BST: " << levels << endl;
+    }
+    
+    void findChildNodes() {
+        int value;
+        cout << "Enter node value: ";
+        cin >> value;
+        
+        Node* node = findNode(root, value);
+        if (node == nullptr) {
+            cout << "Node not found" << endl;
+            return;
+        }
+        
+        cout << "Children of node " << value << ": ";
+        if (node->left) cout << "Left: " << node->left->data << " ";
+        if (node->right) cout << "Right: " << node->right->data << " ";
+        if (!node->left && !node->right) cout << "No children";
+        cout << endl;
+    }
+    
+    void findParentNode() {
+        int value;
+        cout << "Enter node value: ";
+        cin >> value;
+        
+        Node* parent = findParent(root, value);
+        if (parent == nullptr) {
+            if (root && root->data == value) {
+                cout << "Node " << value << " is the root (no parent)" << endl;
+            } else {
+                cout << "Node not found" << endl;
             }
-            if (node->right != nullptr) {
-                cout << "right: " << node->right->data << " ";
-            }
-            cout << endl;
-        }
-    }
-    
-    // 14) left's rightmost node
-    void findLeftRightmost(int value) {
-        Node* node = findNodeHelper(root, value);
-        if (node == nullptr || node->left == nullptr) {
-            cout << "node " << value << " has no left subtree bestie" << endl;
-            return;
-        }
-        
-        Node* rightmost = findMaxHelper(node->left);
-        cout << "left subtree's rightmost node of " << value << ": " << rightmost->data << endl;
-    }
-    
-    // 15) right's leftmost node
-    void findRightLeftmost(int value) {
-        Node* node = findNodeHelper(root, value);
-        if (node == nullptr || node->right == nullptr) {
-            cout << "node " << value << " has no right subtree bestie" << endl;
-            return;
-        }
-        
-        Node* leftmost = findMinHelper(node->right);
-        cout << "right subtree's leftmost node of " << value << ": " << leftmost->data << endl;
-    }
-    
-    // 16) left's leftmost node
-    void findLeftLeftmost(int value) {
-        Node* node = findNodeHelper(root, value);
-        if (node == nullptr || node->left == nullptr) {
-            cout << "node " << value << " has no left subtree bestie" << endl;
-            return;
-        }
-        
-        Node* leftmost = findMinHelper(node->left);
-        cout << "left subtree's leftmost node of " << value << ": " << leftmost->data << endl;
-    }
-    
-    // 17) right's rightmost node
-    void findRightRightmost(int value) {
-        Node* node = findNodeHelper(root, value);
-        if (node == nullptr || node->right == nullptr) {
-            cout << "node " << value << " has no right subtree bestie" << endl;
-            return;
-        }
-        
-        Node* current = node->right;
-        while (current->right != nullptr) {
-            current = current->right;
-        }
-        cout << "right subtree's rightmost node of " << value << ": " << current->data << endl;
-    }
-    
-    // 18) find height and depth when node value is given (same as 9)
-    void findNodeHeightDepth(int value) {
-        findDepthAndHeight(value);
-    }
-    
-    // 19) check if tree is BST
-    void checkIfBST() {
-        if (isBSTHelper(root, INT_MIN, INT_MAX)) {
-            cout << "tree is a valid BST no cap" << endl;
         } else {
-            cout << "tree is NOT a valid BST bestie" << endl;
+            cout << "Parent of node " << value << ": " << parent->data << endl;
         }
     }
     
-    // 20) count nodes in range
-    void countNodesInRange(int low, int high) {
-        int count = countInRangeHelper(root, low, high);
-        cout << "nodes in range [" << low << ", " << high << "]: " << count << endl;
-    }
-    
-    // 21) search node with depth and height
-    void searchNode(int value) {
-        Node* found = findNodeHelper(root, value);
-        if (found == nullptr) {
-            cout << "node " << value << " not found bestie" << endl;
+    void leftRightmost() {
+        int value;
+        cout << "Enter node value: ";
+        cin >> value;
+        
+        Node* node = findNode(root, value);
+        if (node == nullptr || node->left == nullptr) {
+            cout << "Node not found or has no left subtree" << endl;
             return;
         }
         
-        cout << "node " << value << " found!" << endl;
-        findDepthAndHeight(value);
+        Node* rightmost = findMax(node->left);
+        cout << "Left subtree's rightmost node of " << value << ": " << rightmost->data << endl;
     }
     
-    // 22) lowest common ancestor
-    void findLCA(int n1, int n2) {
-        Node* lca = lcaHelper(root, n1, n2);
-        if (lca == nullptr) {
-            cout << "LCA not found bestie" << endl;
+    void rightLeftmost() {
+        int value;
+        cout << "Enter node value: ";
+        cin >> value;
+        
+        Node* node = findNode(root, value);
+        if (node == nullptr || node->right == nullptr) {
+            cout << "Node not found or has no right subtree" << endl;
+            return;
+        }
+        
+        Node* leftmost = findMin(node->right);
+        cout << "Right subtree's leftmost node of " << value << ": " << leftmost->data << endl;
+    }
+    
+    void leftLeftmost() {
+        int value;
+        cout << "Enter node value: ";
+        cin >> value;
+        
+        Node* node = findNode(root, value);
+        if (node == nullptr || node->left == nullptr) {
+            cout << "Node not found or has no left subtree" << endl;
+            return;
+        }
+        
+        Node* leftmost = findMin(node->left);
+        cout << "Left subtree's leftmost node of " << value << ": " << leftmost->data << endl;
+    }
+    
+    void rightRightmost() {
+        int value;
+        cout << "Enter node value: ";
+        cin >> value;
+        
+        Node* node = findNode(root, value);
+        if (node == nullptr || node->right == nullptr) {
+            cout << "Node not found or has no right subtree" << endl;
+            return;
+        }
+        
+        Node* rightmost = findMax(node->right);
+        cout << "Right subtree's rightmost node of " << value << ": " << rightmost->data << endl;
+    }
+    
+    void checkIsBST() {
+        bool result = isBSTRec(root, INT_MIN, INT_MAX);
+        cout << "Is the tree a valid BST? " << (result ? "Yes" : "No") << endl;
+    }
+    
+    void countNodesInRange() {
+        int low, high;
+        cout << "Enter lower bound: ";
+        cin >> low;
+        cout << "Enter higher bound: ";
+        cin >> high;
+        
+        int count = 0;
+        countInRange(root, low, high, count);
+        cout << "Number of nodes in range [" << low << ", " << high << "]: " << count << endl;
+    }
+    
+    void calculateMinMaxLevels() {
+        int totalNodes;
+        cout << "Enter total number of nodes: ";
+        cin >> totalNodes;
+        
+        if (totalNodes <= 0) {
+            cout << "Invalid number of nodes" << endl;
+            return;
+        }
+        
+        int minLevels = (int)ceil(log2(totalNodes + 1));
+        int maxLevels = totalNodes;
+        
+        cout << "For " << totalNodes << " nodes:" << endl;
+        cout << "Minimum levels (balanced tree): " << minLevels << endl;
+        cout << "Maximum levels (skewed tree): " << maxLevels << endl;
+    }
+    
+    void searchNode() {
+        int value;
+        cout << "Enter value to search: ";
+        cin >> value;
+        
+        Node* node = findNode(root, value);
+        if (node != nullptr) {
+            cout << "Node " << value << " is present in the BST" << endl;
         } else {
-            cout << "lowest common ancestor of " << n1 << " and " << n2 << ": " << lca->data << endl;
+            cout << "Node " << value << " is not present in the BST" << endl;
         }
     }
     
-    // 23) find median
+    void findLeastCommonAncestor() {
+        int n1, n2;
+        cout << "Enter first node value: ";
+        cin >> n1;
+        cout << "Enter second node value: ";
+        cin >> n2;
+        
+        Node* lca = findLCA(root, n1, n2);
+        if (lca != nullptr) {
+            cout << "Least Common Ancestor of " << n1 << " and " << n2 << ": " << lca->data << endl;
+        } else {
+            cout << "LCA not found (one or both nodes may not exist)" << endl;
+        }
+    }
+    
     void findMedian() {
-        if (root == nullptr) {
-            cout << "tree empty, no median fr" << endl;
+        vector<int> values;
+        inorderVector(root, values);
+        
+        if (values.empty()) {
+            cout << "Tree is empty" << endl;
             return;
         }
         
-        vector<int> sortedValues;
-        inorderForMedian(root, sortedValues);
-        
-        int n = sortedValues.size();
-        if (n % 2 == 1) {
-            cout << "median: " << sortedValues[n/2] << endl;
+        int size = values.size();
+        if (size % 2 == 1) {
+            cout << "Median: " << values[size / 2] << endl;
         } else {
-            double median = (sortedValues[n/2-1] + sortedValues[n/2]) / 2.0;
-            cout << "median: " << median << endl;
+            double median = (values[size / 2 - 1] + values[size / 2]) / 2.0;
+            cout << "Median: " << median << endl;
         }
     }
     
-    // 24) unique node values
     void findUniqueValues() {
-        if (root == nullptr) {
-            cout << "tree empty bestie" << endl;
-            return;
-        }
-        
-        set<int> uniqueSet;
-        collectUniqueValues(root, uniqueSet);
-        
-        cout << "number of unique values: " << uniqueSet.size() << endl;
-        cout << "unique values: ";
-        for (int val : uniqueSet) {
-            cout << val << " ";
-        }
-        cout << endl;
+        cout << "Note: BST by definition contains only unique values" << endl;
+        cout << "All values in BST (inorder): ";
+        inorder();
     }
     
-    // 25) find pair with sum
-    void findPairWithSum(int target) {
-        if (root == nullptr) {
-            cout << "tree empty bestie" << endl;
-            return;
-        }
+    void findPairWithSum() {
+        int targetSum;
+        cout << "Enter target sum: ";
+        cin >> targetSum;
         
-        set<int> visited;
-        if (!findPairHelper(root, target, visited)) {
-            cout << "no pair found with sum " << target << endl;
-        }
-    }
-    
-    // 26) common nodes of two BST
-    void findCommonNodes(BST& otherTree) {
-        if (root == nullptr || otherTree.root == nullptr) {
-            cout << "one or both trees empty bestie" << endl;
-            return;
-        }
+        vector<int> values;
+        inorderVector(root, values);
         
-        set<int> tree1Nodes, tree2Nodes;
-        collectNodes(root, tree1Nodes);
-        collectNodes(otherTree.root, tree2Nodes);
-        
-        cout << "common nodes: ";
         bool found = false;
-        for (int val : tree1Nodes) {
-            if (tree2Nodes.find(val) != tree2Nodes.end()) {
-                cout << val << " ";
-                found = true;
+        for (int i = 0; i < values.size() - 1; i++) {
+            for (int j = i + 1; j < values.size(); j++) {
+                if (values[i] + values[j] == targetSum) {
+                    cout << "Pair found: " << values[i] << " + " << values[j] << " = " << targetSum << endl;
+                    found = true;
+                }
             }
         }
+        
         if (!found) {
-            cout << "no common nodes fr";
+            cout << "No such pair found" << endl;
         }
-        cout << endl;
     }
     
-    // 27) predecessor and successor
-    void findPredecessorAndSuccessor(int value) {
+    void findPredecessorSuccessor() {
+        int value;
+        cout << "Enter node value: ";
+        cin >> value;
+        
         Node* pred = findPredecessor(root, value);
         Node* succ = findSuccessor(root, value);
         
-        cout << "for node " << value << ":" << endl;
-        if (pred == nullptr) {
-            cout << "predecessor: none" << endl;
+        cout << "For node " << value << ":" << endl;
+        if (pred) {
+            cout << "Predecessor: " << pred->data << endl;
         } else {
-            cout << "predecessor: " << pred->data << endl;
+            cout << "No predecessor" << endl;
         }
         
-        if (succ == nullptr) {
-            cout << "successor: none" << endl;
+        if (succ) {
+            cout << "Successor: " << succ->data << endl;
         } else {
-            cout << "successor: " << succ->data << endl;
+            cout << "No successor" << endl;
         }
     }
     
-    // 28) find total number of levels in BST
-    void getTotalLevels() {
+    void findMaxHeightDepth() {
         if (root == nullptr) {
-            cout << "tree empty, 0 levels bestie" << endl;
+            cout << "Tree is empty" << endl;
             return;
         }
         
-        int levels = getTreeHeight(root) + 1; // height + 1 = levels
-        cout << "total levels in BST: " << levels << endl;
-    }
-    
-    bool isEmpty() {
-        return root == nullptr;
-    }
-    
-    Node* getRoot() {
-        return root;
-    }
-    
-    // helper to clear tree
-    void clearTree(Node* node) {
-        if (node != nullptr) {
-            clearTree(node->left);
-            clearTree(node->right);
-            delete node;
-        }
-    }
-    
-    ~BST() {
-        clearTree(root);
+        int maxHeight = getHeight(root);
+        int maxDepth = maxHeight; // In a tree, max depth = height of root
+        
+        cout << "Maximum height of BST: " << maxHeight << endl;
+        cout << "Maximum depth of BST: " << maxDepth << endl;
     }
 };
 
+void displayMenu() {
+    cout << "\n=== BST Operations Menu ===" << endl;
+    cout << "1) Insert data" << endl;
+    cout << "2) Delete data by value" << endl;
+    cout << "3) Preorder traversal" << endl;
+    cout << "4) Postorder traversal" << endl;
+    cout << "5) Inorder traversal" << endl;
+    cout << "6) Find max value in BST" << endl;
+    cout << "7) Find min value in BST" << endl;
+    cout << "8) Get depth and height of a node" << endl;
+    cout << "9) Calculate levels of BST" << endl;
+    cout << "10) Find child nodes of a node" << endl;
+    cout << "11) Find parent node of a node" << endl;
+    cout << "12) Left's rightmost node of given node" << endl;
+    cout << "13) Right's leftmost node of given node" << endl;
+    cout << "14) Left's leftmost node of given node" << endl;
+    cout << "15) Right's rightmost node of given node" << endl;
+    cout << "16) Check if tree is BST" << endl;
+    cout << "17) Count nodes in range" << endl;
+    cout << "18) Calculate min/max levels based on node count" << endl;
+    cout << "19) Search a node by value" << endl;
+    cout << "20) Find least common ancestor of two nodes" << endl;
+    cout << "21) Find median of BST" << endl;
+    cout << "22) Find unique values in BST" << endl;
+    cout << "23) Find pair which equals to sum" << endl;
+    cout << "24) Find predecessor and successor of a node" << endl;
+    cout << "25) Find max height and depth of BST" << endl;
+    cout << "0) Exit" << endl;
+    cout << "Enter your choice: ";
+}
+
 int main() {
-    BST tree1, tree2;
-    int choice, data, value, nodes, low, high, n1, n2, target;
+    BST bst;
+    int choice, value;
     
-    do {
-        cout << "\n=== SIGMA BST MEGA MENU ===" << endl;
-        cout << "1. Insert data" << endl;
-        cout << "2. Delete data by value" << endl;
-        cout << "3. Preorder traversal" << endl;
-        cout << "4. Inorder traversal" << endl;
-        cout << "5. Postorder traversal" << endl;
-        cout << "6. Find maximum value" << endl;
-        cout << "7. Find minimum value" << endl;
-        cout << "8. Check similar structure with tree2" << endl;
-        cout << "9. Find depth and height of node" << endl;
-        cout << "10. Get tree info (depth/height)" << endl;
-        cout << "11. Calculate levels from number of nodes" << endl;
-        cout << "12. Find parent node" << endl;
-        cout << "13. Find child nodes" << endl;
-        cout << "14. Left's rightmost node" << endl;
-        cout << "15. Right's leftmost node" << endl;
-        cout << "16. Left's leftmost node" << endl;
-        cout << "17. Right's rightmost node" << endl;
-        cout << "18. Find height/depth of node (alt)" << endl;
-        cout << "19. Check if tree is BST" << endl;
-        cout << "20. Count nodes in range" << endl;
-        cout << "21. Search node with info" << endl;
-        cout << "22. Find LCA of two nodes" << endl;
-        cout << "23. Find median of BST" << endl;
-        cout << "24. Find unique values" << endl;
-        cout << "25. Find pair with sum" << endl;
-        cout << "26. Find common nodes with tree2" << endl;
-        cout << "27. Find predecessor and successor" << endl;
-        cout << "28. Find total levels in BST" << endl;
-        cout << "29. Operations on tree2" << endl;
-        cout << "0. Exit (touch grass)" << endl;
-        cout << "Enter your choice sigma: ";
+    while (true) {
+        displayMenu();
         cin >> choice;
         
         switch (choice) {
+            case 0:
+                cout << "Exiting program. Goodbye!" << endl;
+                return 0;
+                
             case 1:
-                cout << "Enter data to insert: ";
-                cin >> data;
-                tree1.insert(data);
+                cout << "Enter value to insert: ";
+                cin >> value;
+                bst.insert(value);
+                cout << "Value inserted successfully" << endl;
                 break;
                 
             case 2:
                 cout << "Enter value to delete: ";
-                cin >> data;
-                tree1.deleteValue(data);
+                cin >> value;
+                bst.deleteNode(value);
+                cout << "Value deleted successfully" << endl;
                 break;
                 
             case 3:
-                tree1.preorderTraversal();
+                bst.preorder();
                 break;
                 
             case 4:
-                tree1.inorderTraversal();
+                bst.postorder();
                 break;
                 
             case 5:
-                tree1.postorderTraversal();
+                bst.inorder();
                 break;
                 
             case 6:
-                tree1.findMax();
+                bst.findMaxValue();
                 break;
                 
             case 7:
-                tree1.findMin();
+                bst.findMinValue();
                 break;
                 
             case 8:
-                if (tree1.checkSimilarStructure(tree2)) {
-                    cout << "trees have similar structure no cap" << endl;
-                } else {
-                    cout << "trees have different structure bestie" << endl;
-                }
+                bst.getNodeDepthHeight();
                 break;
                 
             case 9:
-                cout << "Enter node value to find depth/height: ";
-                cin >> value;
-                tree1.findDepthAndHeight(value);
+                bst.calculateLevels();
                 break;
                 
             case 10:
-                tree1.getTreeInfo();
+                bst.findChildNodes();
                 break;
                 
             case 11:
-                cout << "Enter number of nodes: ";
-                cin >> nodes;
-                tree1.calculateLevels(nodes);
+                bst.findParentNode();
                 break;
                 
             case 12:
-                cout << "Enter node value to find parent: ";
-                cin >> value;
-                tree1.findParent(value);
+                bst.leftRightmost();
                 break;
                 
             case 13:
-                cout << "Enter node value to find children: ";
-                cin >> value;
-                tree1.findChildren(value);
+                bst.rightLeftmost();
                 break;
                 
             case 14:
-                cout << "Enter node value: ";
-                cin >> value;
-                tree1.findLeftRightmost(value);
+                bst.leftLeftmost();
                 break;
                 
             case 15:
-                cout << "Enter node value: ";
-                cin >> value;
-                tree1.findRightLeftmost(value);
+                bst.rightRightmost();
                 break;
                 
             case 16:
-                cout << "Enter node value: ";
-                cin >> value;
-                tree1.findLeftLeftmost(value);
+                bst.checkIsBST();
                 break;
                 
             case 17:
-                cout << "Enter node value: ";
-                cin >> value;
-                tree1.findRightRightmost(value);
+                bst.countNodesInRange();
                 break;
                 
             case 18:
-                cout << "Enter node value: ";
-                cin >> value;
-                tree1.findNodeHeightDepth(value);
+                bst.calculateMinMaxLevels();
                 break;
                 
             case 19:
-                tree1.checkIfBST();
+                bst.searchNode();
                 break;
                 
             case 20:
-                cout << "Enter range [low high]: ";
-                cin >> low >> high;
-                tree1.countNodesInRange(low, high);
+                bst.findLeastCommonAncestor();
                 break;
                 
             case 21:
-                cout << "Enter value to search: ";
-                cin >> value;
-                tree1.searchNode(value);
+                bst.findMedian();
                 break;
                 
             case 22:
-                cout << "Enter two node values: ";
-                cin >> n1 >> n2;
-                tree1.findLCA(n1, n2);
+                bst.findUniqueValues();
                 break;
                 
             case 23:
-                tree1.findMedian();
+                bst.findPairWithSum();
                 break;
                 
             case 24:
-                tree1.findUniqueValues();
+                bst.findPredecessorSuccessor();
                 break;
                 
             case 25:
-                cout << "Enter target sum: ";
-                cin >> target;
-                tree1.findPairWithSum(target);
-                break;
-                
-            case 26:
-                tree1.findCommonNodes(tree2);
-                break;
-                
-            case 27:
-                cout << "Enter node value: ";
-                cin >> value;
-                tree1.findPredecessorAndSuccessor(value);
-                break;
-                
-            case 28:
-                tree1.getTotalLevels();
-                break;
-                
-            case 29:
-                cout << "\n=== TREE2 OPERATIONS ===" << endl;
-                cout << "1. Insert to tree2" << endl;
-                cout << "2. Display tree2 inorder" << endl;
-                cout << "Enter sub-choice: ";
-                int subChoice;
-                cin >> subChoice;
-                
-                if (subChoice == 1) {
-                    cout << "Enter data for tree2: ";
-                    cin >> data;
-                    tree2.insert(data);
-                } else if (subChoice == 2) {
-                    cout << "Tree2 ";
-                    tree2.inorderTraversal();
-                } else {
-                    cout << "invalid sub-choice bestie" << endl;
-                }
-                break;
-                
-            case 0:
-                cout << "exiting... time to touch grass fr" << endl;
+                bst.findMaxHeightDepth();
                 break;
                 
             default:
-                cout << "invalid choice bestie, try again" << endl;
+                cout << "Invalid choice. Please try again." << endl;
+                break;
+        }
+    }
+    
+    return 0;
+}
+
+
+
+
+// two trees
+
+#include <iostream>
+#include <vector>
+#include <set>
+using namespace std;
+
+struct Node {
+    int data;
+    Node* left;
+    Node* right;
+    
+    Node(int val) {
+        data = val;
+        left = nullptr;
+        right = nullptr;
+    }
+};
+
+// Insert node in BST
+Node* insert(Node* root, int val) {
+    if (root == nullptr) {
+        return new Node(val);
+    }
+    if (val < root->data) {
+        root->left = insert(root->left, val);
+    } else if (val > root->data) {
+        root->right = insert(root->right, val);
+    }
+    return root;
+}
+
+// 1) Find common values in 2 trees
+void getInorder(Node* root, set<int>& values) {
+    if (root == nullptr) return;
+    getInorder(root->left, values);
+    values.insert(root->data);
+    getInorder(root->right, values);
+}
+
+void findCommonValues(Node* tree1, Node* tree2) {
+    set<int> values1, values2;
+    getInorder(tree1, values1);
+    getInorder(tree2, values2);
+    
+    cout << "Common values: ";
+    for (int val : values1) {
+        if (values2.count(val)) {
+            cout << val << " ";
+        }
+    }
+    cout << endl;
+}
+
+// 2) Check if structure is same
+bool sameStructure(Node* tree1, Node* tree2) {
+    if (tree1 == nullptr && tree2 == nullptr) return true;
+    if (tree1 == nullptr || tree2 == nullptr) return false;
+    
+    return sameStructure(tree1->left, tree2->left) && 
+           sameStructure(tree1->right, tree2->right);
+}
+
+// 3) Clone BST
+Node* cloneBST(Node* root) {
+    if (root == nullptr) {
+        return nullptr;
+    }
+    Node* newNode = new Node(root->data);
+    newNode->left = cloneBST(root->left);
+    newNode->right = cloneBST(root->right);
+    return newNode;
+}
+
+// 4) Traversal conversions
+int search(vector<int>& arr, int x) {
+    for (int i = 0; i < arr.size(); i++)
+        if (arr[i] == x)
+            return i;
+    return -1;
+}
+
+void printPostOrder(vector<int>& in, vector<int>& pre,
+                    int inStart, int inEnd, int preStart) {
+    if (inStart > inEnd) return;
+    
+    int rootIndex = search(in, pre[preStart]);
+    
+    if (rootIndex > inStart) {
+        printPostOrder(in, pre, inStart, rootIndex - 1, preStart + 1);
+    }
+    
+    if (rootIndex < inEnd) {
+        printPostOrder(in, pre, rootIndex + 1, 
+                       inEnd, preStart + rootIndex - inStart + 1);
+    }
+    
+    cout << pre[preStart] << " ";
+}
+
+void printPreOrder(vector<int>& in, vector<int>& post,
+                   int inStart, int inEnd, int postEnd) {
+    if (inStart > inEnd) return;
+    
+    int rootIndex = search(in, post[postEnd]);
+    
+    cout << post[postEnd] << " ";
+    
+    if (rootIndex > inStart) {
+        printPreOrder(in, post, inStart, rootIndex - 1, 
+                     postEnd - (inEnd - rootIndex) - 1);
+    }
+    
+    if (rootIndex < inEnd) {
+        printPreOrder(in, post, rootIndex + 1, inEnd, postEnd - 1);
+    }
+}
+
+void printInorder(Node* root) {
+    if (root == nullptr) return;
+    printInorder(root->left);
+    cout << root->data << " ";
+    printInorder(root->right);
+}
+
+void displayMenu() {
+    cout << "\n=== BST MENU SYSTEM ===" << endl;
+    cout << "1. Find common values in 2 trees" << endl;
+    cout << "2. Check if structure is same" << endl;
+    cout << "3. Clone tree" << endl;
+    cout << "4. Traversal conversions" << endl;
+    cout << "5. Display tree (inorder)" << endl;
+    cout << "6. Insert values to tree" << endl;
+    cout << "0. Exit" << endl;
+    cout << "Choice: ";
+}
+
+int main() {
+    Node* tree1 = nullptr;
+    Node* tree2 = nullptr;
+    Node* clonedTree = nullptr;
+    int choice;
+    
+    do {
+        displayMenu();
+        cin >> choice;
+        
+        switch(choice) {
+            case 1: {
+                if (tree1 == nullptr || tree2 == nullptr) {
+                    cout << "Both trees need values first!" << endl;
+                    break;
+                }
+                findCommonValues(tree1, tree2);
+                break;
+            }
+            
+            case 2: {
+                if (tree1 == nullptr || tree2 == nullptr) {
+                    cout << "Both trees need values first!" << endl;
+                    break;
+                }
+                if (sameStructure(tree1, tree2)) {
+                    cout << "Trees have same structure" << endl;
+                } else {
+                    cout << "Trees have different structure" << endl;
+                }
+                break;
+            }
+            
+            case 3: {
+                cout << "1. Clone tree1" << endl;
+                cout << "2. Clone tree2" << endl;
+                int cloneChoice;
+                cin >> cloneChoice;
+                
+                if (cloneChoice == 1 && tree1 != nullptr) {
+                    clonedTree = cloneBST(tree1);
+                    cout << "Tree1 cloned successfully!" << endl;
+                } else if (cloneChoice == 2 && tree2 != nullptr) {
+                    clonedTree = cloneBST(tree2);
+                    cout << "Tree2 cloned successfully!" << endl;
+                } else {
+                    cout << "Invalid choice or empty tree!" << endl;
+                }
+                break;
+            }
+            
+            case 4: {
+                cout << "1. Pre+In -> Post" << endl;
+                cout << "2. Post+In -> Pre" << endl;
+                int convChoice;
+                cin >> convChoice;
+                
+                if (convChoice == 1) {
+                    int n;
+                    cout << "Enter number of nodes: ";
+                    cin >> n;
+                    
+                    vector<int> preorder(n), inorder(n);
+                    cout << "Enter preorder: ";
+                    for (int i = 0; i < n; i++) cin >> preorder[i];
+                    cout << "Enter inorder: ";
+                    for (int i = 0; i < n; i++) cin >> inorder[i];
+                    
+                    cout << "Postorder: ";
+                    printPostOrder(inorder, preorder, 0, n-1, 0);
+                    cout << endl;
+                } else if (convChoice == 2) {
+                    int n;
+                    cout << "Enter number of nodes: ";
+                    cin >> n;
+                    
+                    vector<int> postorder(n), inorder(n);
+                    cout << "Enter postorder: ";
+                    for (int i = 0; i < n; i++) cin >> postorder[i];
+                    cout << "Enter inorder: ";
+                    for (int i = 0; i < n; i++) cin >> inorder[i];
+                    
+                    cout << "Preorder: ";
+                    printPreOrder(inorder, postorder, 0, n-1, n-1);
+                    cout << endl;
+                }
+                break;
+            }
+            
+            case 5: {
+                cout << "1. Tree1" << endl;
+                cout << "2. Tree2" << endl;
+                cout << "3. Cloned tree" << endl;
+                int displayChoice;
+                cin >> displayChoice;
+                
+                if (displayChoice == 1) {
+                    cout << "Tree1 inorder: ";
+                    printInorder(tree1);
+                    cout << endl;
+                } else if (displayChoice == 2) {
+                    cout << "Tree2 inorder: ";
+                    printInorder(tree2);
+                    cout << endl;
+                } else if (displayChoice == 3) {
+                    cout << "Cloned tree inorder: ";
+                    printInorder(clonedTree);
+                    cout << endl;
+                }
+                break;
+            }
+            
+            case 6: {
+                cout << "1. Insert to Tree1" << endl;
+                cout << "2. Insert to Tree2" << endl;
+                int insertChoice;
+                cin >> insertChoice;
+                
+                cout << "Enter values (enter -1 to stop): ";
+                int val;
+                while (cin >> val && val != -1) {
+                    if (insertChoice == 1) {
+                        tree1 = insert(tree1, val);
+                    } else if (insertChoice == 2) {
+                        tree2 = insert(tree2, val);
+                    }
+                }
+                cout << "Values inserted!" << endl;
+                break;
+            }
+            
+            case 0:
+                cout << "Exiting..." << endl;
+                break;
+                
+            default:
+                cout << "Invalid choice!" << endl;
         }
     } while (choice != 0);
     
     return 0;
 }
-
-```
