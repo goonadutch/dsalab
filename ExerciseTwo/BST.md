@@ -1,4 +1,3 @@
-// CODE
 
 #include <iostream>
 #include <vector>
