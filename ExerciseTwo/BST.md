@@ -987,3 +987,352 @@ int main() {
     
     return 0;
 }
+
+
+
+#include <iostream>
+#include <vector>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+struct Node {
+    int data;
+    Node* left;
+    Node* right;
+    
+    Node(int val) {
+        data = val;
+        left = nullptr;
+        right = nullptr;
+    }
+};
+
+class BST {
+private:
+    Node* insertRec(Node* root, int val) {
+        if (root == nullptr) {
+            return new Node(val);
+        }
+        if (val < root->data) {
+            root->left = insertRec(root->left, val);
+        } else if (val > root->data) {
+            root->right = insertRec(root->right, val);
+        }
+        return root;
+    }
+    
+    void inorderRec(Node* root, vector<int>& result) {
+        if (root == nullptr) return;
+        inorderRec(root->left, result);
+        result.push_back(root->data);
+        inorderRec(root->right, result);
+    }
+    
+    // Convert sorted array to balanced BST
+    Node* sortedArrayToBST(vector<int>& arr, int start, int end) {
+        if (start > end) return nullptr;
+        
+        int mid = start + (end - start) / 2;
+        Node* root = new Node(arr[mid]);
+        
+        root->left = sortedArrayToBST(arr, start, mid - 1);
+        root->right = sortedArrayToBST(arr, mid + 1, end);
+        
+        return root;
+    }
+    
+    // Convert BST to doubly linked list
+    void bstToDoublyLL(Node* root, Node*& prev, Node*& head) {
+        if (root == nullptr) return;
+        
+        bstToDoublyLL(root->left, prev, head);
+        
+        if (prev == nullptr) {
+            head = root;
+        } else {
+            root->left = prev;
+            prev->right = root;
+        }
+        prev = root;
+        
+        bstToDoublyLL(root->right, prev, head);
+    }
+    
+    // Merge two sorted doubly linked lists
+    Node* mergeSortedDLL(Node* head1, Node* head2) {
+        if (head1 == nullptr) return head2;
+        if (head2 == nullptr) return head1;
+        
+        Node* merged = nullptr;
+        
+        if (head1->data <= head2->data) {
+            merged = head1;
+            merged->right = mergeSortedDLL(head1->right, head2);
+            if (merged->right) merged->right->left = merged;
+        } else {
+            merged = head2;
+            merged->right = mergeSortedDLL(head1, head2->right);
+            if (merged->right) merged->right->left = merged;
+        }
+        
+        return merged;
+    }
+    
+    // Convert DLL back to BST
+    Node* dllToBST(Node*& head, int n) {
+        if (n <= 0) return nullptr;
+        
+        Node* left = dllToBST(head, n / 2);
+        
+        Node* root = head;
+        root->left = left;
+        
+        head = head->right;
+        
+        root->right = dllToBST(head, n - n / 2 - 1);
+        
+        return root;
+    }
+    
+    int countNodes(Node* root) {
+        if (root == nullptr) return 0;
+        return 1 + countNodes(root->left) + countNodes(root->right);
+    }
+
+public:
+    Node* root;
+    
+    BST() : root(nullptr) {}
+    
+    void insert(int val) {
+        root = insertRec(root, val);
+    }
+    
+    void inorder() {
+        cout << "Inorder: ";
+        inorderHelper(root);
+        cout << endl;
+    }
+    
+    void inorderHelper(Node* root) {
+        if (root == nullptr) return;
+        inorderHelper(root->left);
+        cout << root->data << " ";
+        inorderHelper(root->right);
+    }
+    
+    // METHOD 1: Using inorder traversal + merge + rebuild (O(m+n) time, O(m+n) space)
+    Node* mergeUsingInorder(Node* root1, Node* root2) {
+        vector<int> arr1, arr2;
+        
+        // Get inorder of both trees
+        inorderRec(root1, arr1);
+        inorderRec(root2, arr2);
+        
+        // Merge two sorted arrays
+        vector<int> merged;
+        int i = 0, j = 0;
+        
+        while (i < arr1.size() && j < arr2.size()) {
+            if (arr1[i] <= arr2[j]) {
+                merged.push_back(arr1[i++]);
+            } else {
+                merged.push_back(arr2[j++]);
+            }
+        }
+        
+        while (i < arr1.size()) merged.push_back(arr1[i++]);
+        while (j < arr2.size()) merged.push_back(arr2[j++]);
+        
+        // Build balanced BST from merged array
+        return sortedArrayToBST(merged, 0, merged.size() - 1);
+    }
+    
+    // METHOD 2: Using doubly linked list approach (O(m+n) time, O(h1+h2) space)
+    Node* mergeUsingDLL(Node* root1, Node* root2) {
+        Node* head1 = nullptr, *head2 = nullptr;
+        Node* prev1 = nullptr, *prev2 = nullptr;
+        
+        // Convert both BSTs to sorted doubly linked lists
+        bstToDoublyLL(root1, prev1, head1);
+        bstToDoublyLL(root2, prev2, head2);
+        
+        // Merge the two sorted doubly linked lists
+        Node* mergedHead = mergeSortedDLL(head1, head2);
+        
+        // Count total nodes
+        int totalNodes = countNodes(root1) + countNodes(root2);
+        
+        // Convert merged DLL back to balanced BST
+        return dllToBST(mergedHead, totalNodes);
+    }
+    
+    // METHOD 3: Insert all nodes from one tree to another (O(m*h2) time)
+    Node* mergeByInsertion(Node* root1, Node* root2) {
+        if (root1 == nullptr) return root2;
+        if (root2 == nullptr) return root1;
+        
+        // Get all elements from second tree
+        vector<int> elements;
+        inorderRec(root2, elements);
+        
+        // Insert all elements into first tree
+        Node* result = root1;
+        for (int val : elements) {
+            result = insertRec(result, val);
+        }
+        
+        return result;
+    }
+    
+    // METHOD 4: Stack-based iterative merge (O(m+n) time, O(h1+h2) space)
+    Node* mergeUsingStacks(Node* root1, Node* root2) {
+        stack<Node*> s1, s2;
+        vector<int> merged;
+        
+        Node* curr1 = root1;
+        Node* curr2 = root2;
+        
+        // Merge using iterative inorder traversal
+        while (curr1 || curr2 || !s1.empty() || !s2.empty()) {
+            // Reach leftmost of tree1
+            while (curr1) {
+                s1.push(curr1);
+                curr1 = curr1->left;
+            }
+            
+            // Reach leftmost of tree2
+            while (curr2) {
+                s2.push(curr2);
+                curr2 = curr2->left;
+            }
+            
+            if (s2.empty() || (!s1.empty() && s1.top()->data <= s2.top()->data)) {
+                curr1 = s1.top();
+                s1.pop();
+                merged.push_back(curr1->data);
+                curr1 = curr1->right;
+            } else {
+                curr2 = s2.top();
+                s2.pop();
+                merged.push_back(curr2->data);
+                curr2 = curr2->right;
+            }
+        }
+        
+        // Build balanced BST from merged array
+        return sortedArrayToBST(merged, 0, merged.size() - 1);
+    }
+};
+
+void displayMenu() {
+    cout << "\n=== BST MERGE OPERATIONS ===" << endl;
+    cout << "1. Insert values to BST1" << endl;
+    cout << "2. Insert values to BST2" << endl;
+    cout << "3. Display BST1" << endl;
+    cout << "4. Display BST2" << endl;
+    cout << "5. Merge using Inorder (Method 1)" << endl;
+    cout << "6. Merge using Doubly LL (Method 2)" << endl;
+    cout << "7. Merge by Insertion (Method 3)" << endl;
+    cout << "8. Merge using Stacks (Method 4)" << endl;
+    cout << "9. Display merged BST" << endl;
+    cout << "0. Exit" << endl;
+    cout << "Choice: ";
+}
+
+int main() {
+    BST bst1, bst2, mergedBST;
+    int choice;
+    
+    do {
+        displayMenu();
+        cin >> choice;
+        
+        switch(choice) {
+            case 1: {
+                cout << "Enter values for BST1 (enter -1 to stop): ";
+                int val;
+                while (cin >> val && val != -1) {
+                    bst1.insert(val);
+                }
+                cout << "Values inserted into BST1!" << endl;
+                break;
+            }
+            
+            case 2: {
+                cout << "Enter values for BST2 (enter -1 to stop): ";
+                int val;
+                while (cin >> val && val != -1) {
+                    bst2.insert(val);
+                }
+                cout << "Values inserted into BST2!" << endl;
+                break;
+            }
+            
+            case 3:
+                cout << "BST1 ";
+                bst1.inorder();
+                break;
+                
+            case 4:
+                cout << "BST2 ";
+                bst2.inorder();
+                break;
+                
+            case 5: {
+                if (bst1.root == nullptr && bst2.root == nullptr) {
+                    cout << "Both trees are empty!" << endl;
+                    break;
+                }
+                mergedBST.root = bst1.mergeUsingInorder(bst1.root, bst2.root);
+                cout << "Trees merged using Inorder method!" << endl;
+                break;
+            }
+            
+            case 6: {
+                if (bst1.root == nullptr && bst2.root == nullptr) {
+                    cout << "Both trees are empty!" << endl;
+                    break;
+                }
+                mergedBST.root = bst1.mergeUsingDLL(bst1.root, bst2.root);
+                cout << "Trees merged using Doubly Linked List method!" << endl;
+                break;
+            }
+            
+            case 7: {
+                if (bst1.root == nullptr && bst2.root == nullptr) {
+                    cout << "Both trees are empty!" << endl;
+                    break;
+                }
+                mergedBST.root = bst1.mergeByInsertion(bst1.root, bst2.root);
+                cout << "Trees merged using Insertion method!" << endl;
+                break;
+            }
+            
+            case 8: {
+                if (bst1.root == nullptr && bst2.root == nullptr) {
+                    cout << "Both trees are empty!" << endl;
+                    break;
+                }
+                mergedBST.root = bst1.mergeUsingStacks(bst1.root, bst2.root);
+                cout << "Trees merged using Stack method!" << endl;
+                break;
+            }
+            
+            case 9:
+                cout << "Merged BST ";
+                mergedBST.inorder();
+                break;
+                
+            case 0:
+                cout << "Exiting..." << endl;
+                break;
+                
+            default:
+                cout << "Invalid choice!" << endl;
+        }
+    } while (choice != 0);
+    
+    return 0;
+}
