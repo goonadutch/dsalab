@@ -679,3 +679,152 @@ Same as checkAndConvertToMinHeap but for max heap.
 - **Leaves start at size/2:** Everything after that has no children
 - **Level-order traversal:** Visit nodes level by level using a queue
 ```
+```
+# C++ Vector Cheatsheet
+
+## Basics
+```cpp
+#include <vector>
+#include <algorithm>  // for sort, reverse, etc
+
+vector<int> v;                    // empty vector
+vector<int> v(5);                 // size 5, all zeros
+vector<int> v(5, 10);             // size 5, all 10s
+vector<int> v = {1, 2, 3, 4};     // initialize with values
+```
+
+## Insert/Add Elements
+```cpp
+v.push_back(10);                  // add 10 at end
+v.insert(v.begin(), 5);           // insert 5 at front
+v.insert(v.begin() + 2, 7);       // insert 7 at index 2
+v.insert(v.end(), 3, 100);        // insert three 100s at end
+```
+
+## Delete/Remove Elements
+```cpp
+v.pop_back();                     // remove last element
+v.erase(v.begin());               // remove first element
+v.erase(v.begin() + 2);           // remove element at index 2
+v.erase(v.begin() + 1, v.begin() + 4);  // remove range [1,4)
+v.clear();                        // remove all elements
+```
+
+## Access Elements
+```cpp
+v[2];                             // access index 2 (no bounds check)
+v.at(2);                          // access index 2 (throws error if out of bounds)
+v.front();                        // first element
+v.back();                         // last element
+```
+
+## Size Operations
+```cpp
+v.size();                         // number of elements
+v.empty();                        // returns true if empty
+v.resize(10);                     // resize to 10 elements
+v.resize(10, 5);                  // resize to 10, fill new with 5
+```
+
+## Sort Operations
+```cpp
+sort(v.begin(), v.end());         // ascending sort
+sort(v.begin(), v.end(), greater<int>());  // descending sort
+reverse(v.begin(), v.end());      // reverse the vector
+```
+
+## Combine Two Vectors
+```cpp
+vector<int> v1 = {1, 2, 3};
+vector<int> v2 = {4, 5, 6};
+
+// Method 1: insert
+v1.insert(v1.end(), v2.begin(), v2.end());
+
+// Method 2: loop
+for(int x : v2) {
+    v1.push_back(x);
+}
+```
+
+## Find/Search
+```cpp
+auto it = find(v.begin(), v.end(), 10);   // find value 10
+if (it != v.end()) {
+    int index = it - v.begin();           // get index
+}
+
+// count occurrences
+int cnt = count(v.begin(), v.end(), 10);
+
+// check if value exists
+bool exists = (find(v.begin(), v.end(), 10) != v.end());
+```
+
+## Swap
+```cpp
+swap(v[0], v[2]);                 // swap elements at index 0 and 2
+v1.swap(v2);                      // swap entire vectors
+```
+
+## Min/Max
+```cpp
+int minVal = *min_element(v.begin(), v.end());
+int maxVal = *max_element(v.begin(), v.end());
+
+// get iterator to min/max
+auto minIt = min_element(v.begin(), v.end());
+auto maxIt = max_element(v.begin(), v.end());
+int minIndex = minIt - v.begin();
+```
+
+## Loop Through Vector
+```cpp
+// Method 1: range-based for
+for(int x : v) {
+    cout << x << " ";
+}
+
+// Method 2: iterator
+for(auto it = v.begin(); it != v.end(); it++) {
+    cout << *it << " ";
+}
+
+// Method 3: index
+for(int i = 0; i < v.size(); i++) {
+    cout << v[i] << " ";
+}
+```
+
+## Copy Vector
+```cpp
+vector<int> v2 = v1;              // copy v1 to v2
+vector<int> v2(v1.begin(), v1.end());  // another way
+```
+
+## Remove Duplicates
+```cpp
+sort(v.begin(), v.end());
+v.erase(unique(v.begin(), v.end()), v.end());
+```
+
+## 2D Vector
+```cpp
+vector<vector<int>> grid(3, vector<int>(4, 0));  // 3x4 grid of zeros
+grid[1][2] = 5;                   // access row 1, col 2
+```
+
+## Common Pitfalls
+```cpp
+// DON'T do this - out of bounds
+vector<int> v(5);
+v[10] = 100;  // undefined behavior
+
+// DO this instead
+v.resize(11);
+v[10] = 100;
+
+// or use push_back
+v.push_back(100);
+```
+```
